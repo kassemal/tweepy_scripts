@@ -5,7 +5,6 @@
 Optimize graph by removing nodes with "low degree".
 """
 
-
 def remove_node(id_u, nodes, edges, levels, k):
 	"""
 	Remove node $id_u from the graph. 
@@ -17,7 +16,6 @@ def remove_node(id_u, nodes, edges, levels, k):
 			edges.remove((x,y))
 	return 
 
-
 def get_outgoing_edges_number(id_u, edges):
 	"""
 	Get the number of outgoing edges from $id_u.
@@ -28,7 +26,6 @@ def get_outgoing_edges_number(id_u, edges):
 			edges_nb += 1
 	return edges_nb 
 
-
 def get_edges_number(id_u, edges):
 	"""
 	Get the number of (outgoing and ingoing) edges from $id_u.
@@ -38,7 +35,6 @@ def get_edges_number(id_u, edges):
 		if x == id_u or y == id_u:
 			edges_nb += 1
 	return edges_nb 
-
 
 def optimize_graph(nodes, levels, edges, max_nodes):
 	"""
@@ -70,7 +66,6 @@ def optimize_graph(nodes, levels, edges, max_nodes):
 		remove_node(id_m, nodes, edges, levels, i)
 	return 
 
-
 def read_graph(usr_name, levels_nb):
 	#read nodes from a file
 	nodes = []
@@ -98,9 +93,7 @@ def read_graph(usr_name, levels_nb):
 		levels.append(lvl)
 	return nodes, levels, edges
 
-
 def write_graph(usr_name, nodes, levels, edges):
-
 	#write nodes into a file
 	f = open('%s_opt_graph_nodes'%usr_name, 'wb') 
 	f.write('\n'.join(str(x) for x in nodes))
@@ -116,17 +109,16 @@ def write_graph(usr_name, nodes, levels, edges):
 		f = open('%s_opt_graph_level_%d'%(usr_name, i), 'wb') 
 		f.write('\n'.join(str(x) for x in lvl))
 		f.close()
-
 	return
 
-
-USR_NAME =  
-LVL_NB = 
+USR_NAME =  'alevalerossi'
+LVL_NB = 3
+NB_nodes = 20
 
 if __name__ == '__main__':
 
 	nodes, levels, edges = read_graph(USR_NAME, LVL_NB)
-	optimize_graph(nodes, levels, edges, 3)
+	optimize_graph(nodes, levels, edges, NB_nodes)
 	write_graph(USR_NAME, nodes, levels, edges)
 	print('Done!')
 
