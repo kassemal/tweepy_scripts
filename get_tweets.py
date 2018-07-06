@@ -62,7 +62,10 @@ if __name__ == '__main__':
         for twt in tweets:
         	formated_twt = [id_u, twt.id_str, twt.created_at, twt.text.encode("utf-8").replace('\n', ' ')]
         	if twt.is_quote_status:
-        		formated_twt.append(twt.quoted_status_id_str)
+				try:
+					formated_twt.append(twt.quoted_status_id_str)
+				except AttributeError:
+					formated_twt.append('None')
     		else:
 			    try:
 			        formated_twt.append(twt.retweeted_status.id_str)
