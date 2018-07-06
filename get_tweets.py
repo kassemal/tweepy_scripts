@@ -6,7 +6,6 @@ For every user in $USR_ID list, get the most recent $TWEETS_NB tweets
 and write them into a sperate file. 
 """
 import tweepy #https://github.com/tweepy/tweepy
-import csv
 
 #Twitter API credentials
 consumer_key=""
