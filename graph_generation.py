@@ -9,13 +9,14 @@ Then write the graph nodes and edges into separated files.
 import tweepy #https://github.com/tweepy/tweepy
 import copy
 
-#Twitter API credentials
-consumer_key=""
-consumer_secret=""
-access_token=""
-access_token_secret=""
+#Twitter API credentials 
+consumer_KEY = []
+consumer_SECRET = []  
+access_TOKEN = []
+access_TOKEN_SECRET = []
 
-def generate_graph(id_o, n, max_followers=5000):
+ 
+def generate_graph(id_o, n, children_limit, max_followers=5000):
     """
     Generate a graph with $n nodes starting from $id_o.   
     Don't consider any node that has more than $max_followers followers. 
@@ -44,7 +45,12 @@ def generate_graph(id_o, n, max_followers=5000):
 
     while len(nodes) < n:
         for id_u, u_followers in pre_lvl.items():
+            counter_u = 0
             for id_v in u_followers:
+                #check children limit
+                if counter_u == children_limit:
+                    break
+
                 #if $id_v is already in $nodes, just add the related edge
                 if id_v in nodes:
                     edges.append((id_u, id_v))
@@ -56,7 +62,7 @@ def generate_graph(id_o, n, max_followers=5000):
 
                 #if there are already $n nodes, then don't add anymore (just complete the for loop while adding the necessary edges)
                 if len(nodes) < n:
-                #try to get followers of $id_v
+                    #try to get followers of $id_v
                     try:
                         followers = api.followers_ids(id=id_v)
                     except tweepy.TweepError: #protected account  
@@ -74,6 +80,8 @@ def generate_graph(id_o, n, max_followers=5000):
                     edges.append((id_u, id_v))
                     #add $id_v followers to $next_lvl
                     next_lvl[id_v] = followers
+                    #increment counter
+                    counter_u += 1
 
         #if no nodes in $next_lvl, then end the while loop
         if len(next_lvl) == 0:           
@@ -98,37 +106,41 @@ def generate_graph(id_o, n, max_followers=5000):
     return nodes, levels, edges
 
 USR_NAME =  'alevalerossi' #screen_name (str) or id (int)
-NB_NODES = 10
+NB_NODES = 12
+CHILDREN_LIMIT  = 3
 MAX_FOLLOWERS = 1000
 if __name__ == '__main__':
 
-	#authentication
-	auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-	auth.set_access_token(access_token, access_token_secret)
-	api = tweepy.API(auth, wait_on_rate_limit=True)
+    #authentication
+    auth_list = []
+    for i in range(len(consumer_KEY)):
+        auth_i = tweepy.OAuthHandler(consumer_KEY[i], consumer_SECRET[i])
+        auth_i.set_access_token(access_TOKEN[i], access_TOKEN_SECRET[i])
+        auth_list.append(auth_i)
+    api = tweepy.API(auth_list, monitor_rate_limit=True, wait_on_rate_limit=True)
 
-	#get id from user_name
-	if isinstance(USR_NAME, str):
-		id_o = api.get_user(USR_NAME).id
+    #get id from user_name
+    if isinstance(USR_NAME, str):
+        id_o = api.get_user(USR_NAME).id
+        
+    #generate graph starting from user $id_o
+    nodes, levels, edges = generate_graph(id_o, n=NB_NODES, children_limit=CHILDREN_LIMIT, max_followers=MAX_FOLLOWERS)
+    print('Number of levels is %d: '%len(levels))
 
-	#generate graph starting from user $id_o
-	nodes, levels, edges = generate_graph(id_o, n=NB_NODES, max_followers=MAX_FOLLOWERS)
-	print('Number of levels is %d: '%len(levels))
+    #write nodes into a file
+    f = open('%s_graph_nodes'%USR_NAME, 'wb') 
+    f.write('\n'.join(str(x) for x in nodes))
+    f.close()
 
-	#write nodes into a file
-	f = open('%s_graph_nodes'%USR_NAME, 'wb') 
-	f.write('\n'.join(str(x) for x in nodes))
-	f.close()
+    #write edges into a file
+    f = open('%s_graph_edges'%USR_NAME, 'wb') 
+    f.write('\n'.join(str(x) + ' ' + str(y) for (x, y) in edges))
+    f.close()
 
-	#write edges into a file
-	f = open('%s_graph_edges'%USR_NAME, 'wb') 
-	f.write('\n'.join(str(x) + ' ' + str(y) for (x, y) in edges))
-	f.close()
+    #write levels into files
+    for i, lvl in enumerate(levels): 
+        f = open('%s_graph_level_%d'%(USR_NAME, i), 'wb') 
+        f.write('\n'.join(str(x) for x in lvl))
+        f.close()
 
-	#write levels into files
-	for i, lvl in enumerate(levels): 
-		f = open('%s_graph_level_%d'%(USR_NAME, i), 'wb') 
-		f.write('\n'.join(str(x) for x in lvl))
-		f.close()
-
-	print('Done!')
+    print('Done!')
